@@ -206,7 +206,7 @@ for(k in 1:length(mult_n))
   rmseval <- rmse(y_latent[A,],what_mat[,1,k])
   
   #calculate CRPS
-  sd_pred <- sqrt(what_mat[,2,k]) #sd of predictions
+  sd_pred <- apply(w_pred[,g0:G],1,sd) #sd of predictions
   crpsval <- mean(crps.numeric(y_latent[A,],family="normal",mean=what_mat[,1,k],sd=sd_pred))
   
   #calculate INT
