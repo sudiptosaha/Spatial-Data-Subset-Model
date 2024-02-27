@@ -1,3 +1,24 @@
+#######################################################################################################
+#                                                                                                     #
+#       This is the code for Spatial Data Subset Model (SDSM).                                        #
+#       This code can run as it is with the dataset simulated using the DataSimulator.R code.         #
+#       This code generates delta from SRS without replacement (refer to line 125).                   #
+#       The choices for subsample sizes can be changed in line 46.                                    #
+#       The choice for the sampling design can be changed in line 125.                                #
+#       To run the code with a different dataset, modify the code accordingly as mentioned below:     #
+#       (i)   Line 40: change the dataset to be loaded.                                               #
+#                      Make sure that "Nn" stores the total size of the data (observed + missing),    #
+#                      "A" stores the set of index of prediction/missing locations/data,              #
+#                      "locations" stores all the locations (observed + missing),                     #
+#                      "X" stores the predictors,                                                     #
+#                      "y_latent" stores the latent process,                                          #
+#                      and "y" stores the data.                                                       #
+#       (ii)  Line 46: change the choices for subsample sizes (length of mult_n should be >=1).       #
+#       (iii) Line 112: change the support of phi (if needed).                                        #
+#       (iv)  Line 125: change the sampling design (if needed).                                       #
+#                                                                                                     #
+#######################################################################################################
+
 #clear the environment
 rm(list=ls())
 
@@ -7,6 +28,8 @@ library(pscl)
 library(mvtnorm)
 library(coda)
 library(Metrics)
+library(scoringRules)
+library(scoringutils)
 library(LaplacesDemon)
 library(bayestestR)
 library(parallel)
@@ -35,7 +58,10 @@ g0 <- 1001
 index_training <- c(1:Nn)[-A]
 
 #data frame to store results
-df_result <- data.frame(n=mult_n,rmse=rep(0,length(mult_n)),model_time=rep(0,length(mult_n)),pred_time=rep(0,length(mult_n)))
+df_result <- data.frame(n=mult_n,mae=rep(0,length(mult_n)),
+                        rmse=rep(0,length(mult_n)),crps=rep(0,length(mult_n)),
+                        int=rep(0,length(mult_n)),cvg=rep(0,length(mult_n)),
+                        model_time=rep(0,length(mult_n)),pred_time=rep(0,length(mult_n)))
 
 #3D matrix to store mean and variance of the posterior samples of latent y
 what_mat <- array(0,dim=c(m,2,length(mult_n))) #what_mat[,1,] stores mean and what_mat[,2,] stores variance
@@ -173,11 +199,26 @@ for(k in 1:length(mult_n))
   #variance of posterior samples
   what_mat[,2,k] <- apply(w_pred[,g0:G],1,var)
   
+  #calculate MAE
+  maeval <- mae(y_latent[A,],what_mat[,1,k])
+  
   #calculate RMSE
   rmseval <- rmse(y_latent[A,],what_mat[,1,k])
   
+  #calculate CRPS
+  sd_pred <- sqrt(what_mat[,2,k]) #sd of predictions
+  crpsval <- mean(crps.numeric(y_latent[A,],family="normal",mean=what_mat[,1,k],sd=sd_pred))
+  
+  #calculate INT
+  lval <- qnorm(0.05/2,mean=what_mat[,1,k],sd=sd_pred) #lower limit of 95% credible interval
+  uval <- qnorm(1-0.05/2,mean=what_mat[,1,k],sd=sd_pred) #upper limit of 95% credible interval
+  intval <- mean(interval_score(y_latent[A,],lower=lval,upper=uval,interval_range = rep(95,length(A)),weigh=F))
+  
+  #calculate CVG
+  cvgval <- mean((lval <= y_latent[A,]) & (y_latent[A,] <= uval))
+  
   #save result
-  df_result[k,] <- c(n,rmseval,time_model,time_pred)
+  df_result[k,] <- c(n,maeval,rmseval,crpsval,intval,cvgval,time_model,time_pred)
   
   #print n to keep track
   print(paste("Subsample Size:",n))
