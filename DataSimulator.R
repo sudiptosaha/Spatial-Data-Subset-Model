@@ -1,3 +1,16 @@
+#######################################################################################################
+#                                                                                                     #
+#       This is the code to generate simulated data for Spatial Data Subset Model (SDSM).             #
+#       Note that "Nn" stores the total size of observed and missing data added,                      #
+#       and "m" stores the size of only prediction/missing data.                                      #
+#       To generate data with different size, modify the code accordingly as mentioned below:         #
+#       (i)   Line 18: change the total size of the data (observed + missing).                        #
+#       (ii)  Line 19: change the size of prediction/missing data.                                    #
+#       (iii) Line 22: change the grid size in the direction of x-axis.                               #
+#       (iv)  Line 23: change the grid size in the direction of y-axis.                               #
+#                                                                                                     #
+#######################################################################################################
+
 #clear the environment
 rm(list=ls())
 
