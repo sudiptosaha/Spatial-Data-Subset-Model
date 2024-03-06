@@ -68,7 +68,7 @@ what_mat <- array(0,dim=c(m,2,length(mult_n))) #what_mat[,1,] stores mean and wh
 
 #function for updating phi
 func_phi <- function(ph){
-  Hphi_val <-  sigma2[,i]*cov_func(ph,DistMat[(m+1):(m+n),(m+1):(m+n)],n)
+  Hphi_val <-  sigma2[,i]*exp(-ph*Hphi_delta)
   return(dmvnorm(as.vector(nu_delta), matrix(0,n,1), Hphi_val, log=FALSE))
 }
 
