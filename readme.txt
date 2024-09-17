@@ -1,3 +1,7 @@
+Reference:
+
+Saha, S., & Bradley, J. R. (2024). Incorporating Subsampling into Bayesian Models for High-Dimensional Spatial Data. Bayesian Analysis, 1(1), 1-40.
+
 ----------------------------------------------------------
 
 Steps to run the spatial data subset model (SDSM).
